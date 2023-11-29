@@ -154,6 +154,8 @@ Data analysis/*
 .DS_Store
 *.png
 
+Clean version/results/
+
 *.obj
 
 *.avi
