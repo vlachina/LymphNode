@@ -91,8 +91,7 @@ def solveEuler(cellMap, geom, energyContributions_model, endTime):
     manager.update()
 
     ## Run the solver
-    res1 = solver1.solve(tf=endTime, dt=1, on_topo_change=on_topo_change,
-                   topo_change_args=(solver1.eptm,))
+    res1 = solver1.solve(tf=endTime, dt=1, on_topo_change=on_topo_change, topo_change_args=(solver1.eptm,))
 
     ## Deep copy to return it and being able to modify maintaining the previous one
     cellMap_new = copy.deepcopy(cellMap)

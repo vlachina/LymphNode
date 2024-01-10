@@ -31,6 +31,9 @@ def length_elasticity_range(cellmap, lower_FRC_length_elasticity, higher_FRC_len
 
     return cellmap
 
+
+
+
 def set_opposite_edges_mechanics(cellmap):
 
     for edge in range(len(cellmap.edge_df)):
@@ -64,10 +67,11 @@ def area_elasticity_range(cellmap, lower_area_elasticity, higher_area_elasticity
         cellmap.face_df.loc[face, 'area_elasticity'] = newValue 
     return cellmap
 
-def prefered_area_range(cellmap, a, loc, scale, size):
-    newValues = skewnorm.rvs(a, loc, scale, size)  
-    positive_values = np.abs(newValues)
-    cellmap.face_df['prefered_area'] = np.copy(positive_values)
+def prefered_area_range(cellmap, lower_prefered_area, higher_prefered_area):
+    for face in range(len(cellmap.face_df)):
+        newValue = random.uniform(lower_prefered_area, higher_prefered_area)
+        cellmap.face_df.loc[face, 'prefered_area'] = newValue
+    return cellmap
     
     return cellmap 
 
