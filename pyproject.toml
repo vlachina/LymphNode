@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=67", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "lymphnode"
@@ -8,12 +8,11 @@ version = "0.1.0"
 description = "Lymph node vertex model simulation"
 requires-python = ">=3.11"
 dependencies = [
-    "asciitree==0.3.3",
+    "tyssue==1.1.0",
     "celluloid==0.2.0",
     "ipython-genutils==0.2.0",
     "joblib==1.4.2",
     "munkres==1.1.4",
-    "nb-conda==2.2.1",
     "patsy==1.0.2",
     "ply==3.11",
     "PyQt5==5.15.7",
@@ -24,6 +23,6 @@ dependencies = [
     "statsmodels==0.14.6",
     "tabulate==0.9.0",
     "threadpoolctl==3.5.0",
-    "tyssue==0.9.0",
     "webencodings==0.5.1",
+    "ipykernel>=7.2.0",
 ]
