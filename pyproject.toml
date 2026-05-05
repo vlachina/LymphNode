@@ -25,4 +25,8 @@ dependencies = [
     "threadpoolctl==3.5.0",
     "webencodings==0.5.1",
     "ipykernel>=7.2.0",
+    "scikit-image>=0.26.0",
+    "ipywidgets>=8.1.8",
+    "vispy>=0.16.1",
+    "quantities>=0.16.4",
 ]

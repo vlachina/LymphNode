@@ -739,7 +739,12 @@ custom_cmap = ListedColormap(["yellow", "red"])
 # Register custom colormap only if it doesn't already exist
 if 'yellow_red' not in plt.colormaps():
     custom_cmap = ListedColormap(["yellow", "red"])
-    plt.register_cmap(name='yellow_red', cmap=custom_cmap)
+    try:
+        # Matplotlib 3.5+ preferred API
+        plt.colormaps.register(custom_cmap, name='yellow_red')
+    except AttributeError:
+        # Fallback for older matplotlib versions
+        cm.register_cmap(name='yellow_red', cmap=custom_cmap)
 
 def highlight_edge_on_cellmap(cellmap_init, edge_id=None, figsize=(15, 15),
                               vert_col='orange', edge_highlight_col='red',

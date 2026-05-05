@@ -1,3 +1,4 @@
+import src.tyssue_compat  # noqa: F401
 from tyssue import PlanarGeometry, Sheet, History
 from tyssue import config
 from tyssue.behaviors import EventManager
