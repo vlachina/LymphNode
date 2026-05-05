@@ -8,7 +8,7 @@ class BrownianMotion(effectors.AbstractEffector):
     
     label = 'Brownian Motion'
     element = 'vert'
-    specs = {"settings": {"temperature": 1e-3}}
+    specs = {"settings": {"temperature": 1e-2}}
     
     def energy(eptm):
         T = eptm.settings['temperature']
