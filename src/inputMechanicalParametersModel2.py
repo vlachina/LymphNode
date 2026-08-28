@@ -3,7 +3,6 @@ import numpy as np
 from scipy.stats import lognorm
 
 
-
 def update(cellmap):
     ## Per sheet:
     cellmap.settings["temperature"] = 10
@@ -13,14 +12,7 @@ def update(cellmap):
     cellmap.settings["p_5p"] = 0.1
     cellmap.settings["threshold_length"] = 2e-2
 
-    ## Per cell:
-
     ## Per face:
-
-    #cellmap.face_df["prefered_area"] = cellmap.face_df["area"].mean()*1.1
-    #cellmap.face_df["perimeter"] = 1
-    #cellmap.face_df["perimeter_elasticity"] = 10
-    #cellmap.face_df["prefered_perimeter"] = 3.81
 
     rangeAreaElasticity = False
 
@@ -31,26 +23,11 @@ def update(cellmap):
     else:
         cellmap.face_df["area_elasticity"] = 1
 
-    rangePreferedArea = False
-    splitPreferedArea = False
 
-    # Set preferred face areas (FRC areas)
-    if rangePreferedArea:
-        # Apply a range for preferred area to all FRCs
-        lower_prefered_area = 8.13
-        higher_prefered_area = 11.87
-        cellmap = auxFunctions.prefered_area_range(cellmap, lower_prefered_area, higher_prefered_area)
+    #Preferred area is set to mean area
+    cellmap.face_df["prefered_area"] = cellmap.face_df["area"].mean()
 
-    elif splitPreferedArea:
-        # Split preferred area into two distinct values
-        area_x = 10  # Preferred area for the first half of FRCs
-        area_y = 40  # Preferred area for the second half of FRCs
-        cellmap = auxFunctions.random_island_prefered_area(cellmap, area_x, area_y)
-    else:
-        # Default preferred area if neither range nor split is specified
-        cellmap.face_df["prefered_area"] = cellmap.face_df["area"].mean()
-
-    ## For ECM:
+    ## Per edge, ECM:
     rangeLengthElasticity = False
 
     if rangeLengthElasticity:
@@ -61,7 +38,8 @@ def update(cellmap):
     else:
         cellmap.edge_df['length_elasticity'] = 100
 
-    #cellmap = auxFunctions.set_opposite_edges_mechanics(cellmap)
+
+    ## Per edge, preferred length: 
 
     rangePreferedLength = False
 
