@@ -788,6 +788,8 @@ def highlight_edge_on_cellmap(cellmap_init, edge_id=None, figsize=(15, 15),
 
     # Create figure
     fig, ax = plt.subplots(figsize=figsize)
+    edge_colors = np.where(cellmap.edge_df["color_edges"] == 1, edge_highlight_col, "yellow")
+
 
     # Draw base (thicker black) edges
     draw_edge(
@@ -801,18 +803,26 @@ def highlight_edge_on_cellmap(cellmap_init, edge_id=None, figsize=(15, 15),
         zorder=2
     )
 
-    # Draw overlay coloured edges
+    # Draw all edges uniformly in yellow
     draw_edge(
         cellmap,
         coords=coords,
         ax=ax,
         color="yellow",
-        #colormap='yellow_red',
         width=cellmap.edge_df["edge_width"],
         head_width=0.0,
         alpha=1.0,
         zorder=2
     )
+
+    # Draw the highlighted edge last, directly, so its parallel (opposite-direction)
+    # twin can never be drawn on top of it
+    if edge_id is not None and edge_id in cellmap.edge_df.index:
+        srce, trgt = cellmap.edge_df.loc[edge_id, ["srce", "trgt"]]
+        x_vals = [cellmap.vert_df.loc[srce, coords[0]], cellmap.vert_df.loc[trgt, coords[0]]]
+        y_vals = [cellmap.vert_df.loc[srce, coords[1]], cellmap.vert_df.loc[trgt, coords[1]]]
+        ax.plot(x_vals, y_vals, color=edge_highlight_col,
+                linewidth=cellmap.edge_df.loc[edge_id, "edge_width"], zorder=3)
 
     # Draw vertices (only if plot_vertices is True)
     if plot_vertices:
