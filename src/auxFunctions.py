@@ -654,7 +654,7 @@ def view(cellmap, geom, show_axes=True, xlabel="x", ylabel="y", xlim=None, ylim=
     return fig, ax
 
 
-def highlight_vertices(cellmap, geom, chosen_vert_ids, default_color='red', highlight_color='lime', default_size=10, highlight_size=40):
+def highlight_vertices(cellmap, geom, chosen_vert_ids, default_color='red', highlight_color='lime', default_size=10, highlight_size=40, show_axes=True):
     """
     Visualises the cell map with solid blue edges and highlights selected vertices.
 
@@ -699,8 +699,12 @@ def highlight_vertices(cellmap, geom, chosen_vert_ids, default_color='red', high
 
 
     fig.set_size_inches(15, 15)
-    ax.set_xticks([])
-    ax.set_yticks([])
+    if show_axes:
+        ax.set_xlabel("x", fontsize=14)
+        ax.set_ylabel("y", fontsize=14)
+    else:
+        ax.set_xticks([])
+        ax.set_yticks([])
 
     return fig, ax
 
