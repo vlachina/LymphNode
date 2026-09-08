@@ -24,54 +24,35 @@ import logging
 log = logging.getLogger(__name__)
 
 
-
-def initialize(numCellRows = 40):
-    ## Defining energy contributions
-    # https://tyssue.readthedocs.io/en/latest/_modules/tyssue/dynamics/effectors.html
+def initialize(numCellRows=40, max_retries=5):
+    
     energyContributions_model = model_factory([
-        #brownianMotion.BrownianMotion,
         effectors.FaceAreaElasticity,
-        #effectors.LineTension,
         effectors.LengthElasticity,
-        #effectors.PerimeterElasticity,
-        #effectors.CellAreaElasticity,
-        #effectors.FaceContractility,
-        #effectors.BarrierElasticity
-        #effectors.LineViscosity
-        #effectors.BorderElasticity
-        ])
+    ])
 
-    ## Size of the patch
-    #numCellRows = 40
     noiseCellShape = 0.2
 
-    # noise = 0 -> hexagonal pattern
-    # noise = 1 -> random voronoi
-    cellMap = Sheet.planar_sheet_2d('tissue',
-        nx=numCellRows, # approximate number of cells on the x axis
-        ny=numCellRows, # approximate number of cells along the y axis
-        distx=1, # distance between 2 cells along x
-        disty=1, # distance between 2 cells along y
-        noise=noiseCellShape)
+    for attempt in range(max_retries):
+        try:
+            cellMap = Sheet.planar_sheet_2d('tissue',
+                nx=numCellRows,
+                ny=numCellRows,
+                distx=1,
+                disty=1,
+                noise=noiseCellShape)
 
-    cellMap.remove(cellMap.cut_out([[1, numCellRows], [1, numCellRows]]), trim_borders=True)
-    cellMap.reset_index()
-    cellMap.reset_topo()
+            cellMap.remove(cellMap.cut_out([[1, numCellRows], [1, numCellRows]]), trim_borders=True)
+            cellMap.reset_index()
+            cellMap.reset_topo()
+            break
+        except IndexError:
+            print(f"Tissue generation attempt {attempt + 1}/{max_retries} hit a degenerate cut, retrying with a new random layout...")
+            if attempt == max_retries - 1:
+                raise
 
-
-    ## Definition of the geometry of the sheet
-    # PlanarGeometry: Geometry methods for 2D planar cell arangements
-    # SheetGeometry: Geometry definitions for 2D sheets in 3D
-    # BulkGeometry: Geometry functions for 3D cell arangements
-    geom  = PlanarGeometry
-
-    # Update geometry with the patch
+    geom = PlanarGeometry
     geom.update_all(cellMap)
-
-    # Visualize the sheet
-    #fig, ax = sheet_view(cellMap, mode="quick", figsize=(10, 10))
-
-    ## Connect cells with energy contributions
     cellMap.update_specs(energyContributions_model.specs)
 
     return [cellMap, geom, energyContributions_model]

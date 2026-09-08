@@ -53,7 +53,7 @@ def update(cellmap):
         #cellmap.face_df["prefered_area"] = 50
 
 
-        ## Per edge:
+    ## Per edge:
     rangeLengthElasticity = False
 
     if rangeLengthElasticity:
@@ -75,7 +75,7 @@ def update(cellmap):
         higher_prefered_length = 0.1
         cellmap = auxFunctions.prefered_length_range(cellmap, lower_prefered_length, higher_prefered_length)
     else:
-        cellmap.edge_df['prefered_length'] = 1
+        cellmap.edge_df['prefered_length'] = 0.1
         #cellmap.edge_df['prefered_length'] = cellmap.edge_df['length'].mean()
 
     ## Per vertex:

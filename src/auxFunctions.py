@@ -752,7 +752,7 @@ if 'yellow_red' not in plt.colormaps():
 
 def highlight_edge_on_cellmap(cellmap_init, edge_id=None, figsize=(15, 15),
                               vert_col='orange', edge_highlight_col='red',
-                              base_edge_col='black', base_vert_col='black', vert_size=240,
+                              base_edge_col='black', base_vert_col='black', vert_size=50,
                               save_path=None, show_axes=False,
                               xlim=None, ylim=None,
                               plot_vertices=True, show_figure=True):
