@@ -1,57 +1,104 @@
 import pandas as pd
-
-def collapse_chosen_edge(sheet, chosen_edge):
-    """
-    Merge the two vertices of `chosen_edge` into a new vertex and
-    rewire edges. No plotting, no energy solve, no file I/O.
-    Returns: sheet, new_vertex_id
-    """
-    edge = sheet.edge_df.loc[chosen_edge]
-    srce_vertex, trgt_vertex = edge['srce'], edge['trgt']
-
-    # Opposite edge (if any)
-    opposites = sheet.edge_df[
-        (sheet.edge_df["srce"] == trgt_vertex) & (sheet.edge_df["trgt"] == srce_vertex)
-    ]
-
-    # Edges incident to either vertex
-    connected_edges_srce = sheet.edge_df[(sheet.edge_df["srce"] == srce_vertex) | (sheet.edge_df["trgt"] == srce_vertex)]
-    connected_edges_trgt = sheet.edge_df[(sheet.edge_df["srce"] == trgt_vertex) | (sheet.edge_df["trgt"] == trgt_vertex)]
-
-    # New merged vertex at midpoint
-    new_vertex_id = int(max(sheet.vert_df.index)) + 1
-    sheet.vert_df.loc[new_vertex_id] = {
-        'x': (sheet.vert_df.loc[srce_vertex, 'x'] + sheet.vert_df.loc[trgt_vertex, 'x']) / 2,
-        'y': (sheet.vert_df.loc[srce_vertex, 'y'] + sheet.vert_df.loc[trgt_vertex, 'y']) / 2,
-        'viscosity': (sheet.vert_df.loc[srce_vertex, 'viscosity'] + sheet.vert_df.loc[trgt_vertex, 'viscosity']) / 2,
-        'is_active': 1.0
-    }
-
-    # Rewire edges to the new vertex
-    connected_edges = pd.concat([connected_edges_srce, connected_edges_trgt]).drop_duplicates()
-    for _, e in connected_edges.iterrows():
-        if e['srce'] in (srce_vertex, trgt_vertex):
-            sheet.edge_df.at[e.name, 'srce'] = new_vertex_id
-        if e['trgt'] in (srce_vertex, trgt_vertex):
-            sheet.edge_df.at[e.name, 'trgt'] = new_vertex_id
-
-    # Drop the chosen edge (and the opposite if present)
-    if not opposites.empty:
-        sheet.edge_df.drop([chosen_edge, opposites.index[0]], inplace=True)
-    else:
-        sheet.edge_df.drop(chosen_edge, inplace=True)
-
-    # Remove old vertices and tidy topology
-    sheet.vert_df.drop([srce_vertex, trgt_vertex], inplace=True)
-    sheet.reset_index()
-    sheet.reset_topo()
-
-    return sheet, new_vertex_id
-
 import numpy as np
-import pandas as pd
 
-def split_vertex(cellmap, chosen_vertex, next_edge_uid, geom, energyContributions_model, distance, retry_attempts=3):
+def collapse_single_edge_expansion(cellmap, geom, energyContributions_model, edge_id):
+    """
+    Collapses a single specified edge by merging its two vertices into one.
+    The new vertex is placed at the midpoint of the original edge.
+    
+    Parameters:
+    -----------
+    cellmap : object
+        The cellmap containing vertex and edge DataFrames
+    geom : object
+        Geometry handler
+    energyContributions_model : object
+        Energy model for the system
+    edge_id : int
+        ID of the edge to collapse (must be an inside edge, not boundary)
+    
+    Returns:
+    --------
+    cellmap : object
+        Updated cellmap after edge collapse
+    """
+    
+    logger.info(f"Collapsing edge: {edge_id}")
+    
+    # Verifying edge exists
+    if edge_id not in cellmap.edge_df.index:
+        raise ValueError(f"Edge {edge_id} not found in cellmap.edge_df")
+    
+    # Finding the two vertices belonging to the edge
+    edge_row = cellmap.edge_df.loc[edge_id]
+    v1 = edge_row['srce']
+    v2 = edge_row['trgt']
+    
+    logger.info(f"Merging vertices {v1} and {v2}")
+    
+    # Verifying both vertices exist
+    if v1 not in cellmap.vert_df.index or v2 not in cellmap.vert_df.index:
+        raise ValueError(f"Vertex {v1} or {v2} not found in cellmap.vert_df")
+    
+    # Calculating midpoint coordinates along the chosen edge 
+    x1 = cellmap.vert_df.loc[v1, 'x']
+    y1 = cellmap.vert_df.loc[v1, 'y']
+    x2 = cellmap.vert_df.loc[v2, 'x']
+    y2 = cellmap.vert_df.loc[v2, 'y']
+    
+    midpoint_x = (x1 + x2) / 2
+    midpoint_y = (y1 + y2) / 2
+    
+    # Creating a new vertex at the midpoint
+    new_vertex_id = max(cellmap.vert_df.index) + 1 if not cellmap.vert_df.empty else 0
+    new_vertex_data = cellmap.vert_df.loc[v1].copy()
+    new_vertex_data['x'] = midpoint_x
+    new_vertex_data['y'] = midpoint_y
+    new_vertex_data['new_vert_id'] = np.nan   # ensures new_vert_ids assigns a novel one later on, not v1's old ID
+    cellmap.vert_df.loc[new_vertex_id] = new_vertex_data
+    
+    # Rewiring edges by vertex proximity
+    cellmap.edge_df.loc[cellmap.edge_df["srce"] == v1, "srce"] = new_vertex_id
+    cellmap.edge_df.loc[cellmap.edge_df["srce"] == v2, "srce"] = new_vertex_id
+    cellmap.edge_df.loc[cellmap.edge_df["trgt"] == v1, "trgt"] = new_vertex_id
+    cellmap.edge_df.loc[cellmap.edge_df["trgt"] == v2, "trgt"] = new_vertex_id
+    
+    # Deleting the collapsed edge and its parallel edge
+    parallel_edges = cellmap.edge_df[
+        ((cellmap.edge_df["srce"] == v1) & (cellmap.edge_df["trgt"] == v2)) |
+        ((cellmap.edge_df["srce"] == v2) & (cellmap.edge_df["trgt"] == v1))
+    ].index.tolist()
+    
+    edges_to_delete = [edge_id] + parallel_edges
+    cellmap.edge_df.drop(edges_to_delete, inplace=True, errors='ignore')
+    
+    # Deleting old vertices
+    cellmap.vert_df.drop([v1, v2], inplace=True, errors='ignore')
+    
+    # Removing self-loops (safety mechanism, shouldn't exist)
+    cellmap.edge_df = cellmap.edge_df[cellmap.edge_df["srce"] != cellmap.edge_df["trgt"]]
+    
+    # Removing duplicate edges (if many consecutive collapses form any)
+    cellmap.edge_df = cellmap.edge_df.drop_duplicates(subset=['srce', 'trgt'])
+    
+    # Resetting indices and updating geometry
+    cellmap.reset_index()
+    
+    # Updating active vertices
+    if hasattr(cellmap, 'active_verts'):
+        cellmap.active_verts = list(cellmap.vert_df.index)
+    
+    geom.update_all(cellmap)
+    
+    # Recomputing energy and relaxing the model post edge contraction
+    energyContributions_model.compute_energy(cellmap)
+    [cellmap, geom, model_H, history_H, solver] = vertexModel2.solveEuler(
+        cellmap, geom, energyContributions_model, endTime=40
+    )
+    
+    return cellmap
+
+def split_vertex_expansion(cellmap, chosen_vertex, geom, energyContributions_model, distance, retry_attempts=3):
     """
     Safely divide a vertex by creating a nearby new vertex and rewiring edges.
     On failure, rollback and retry up to `retry_attempts` times.
@@ -71,20 +118,17 @@ def split_vertex(cellmap, chosen_vertex, next_edge_uid, geom, energyContribution
     attempt = 0
     while attempt < retry_attempts:
         try:
-            # --- Work on temporary copies ---
+            # Creating temorary cellmap copies to allow rollback
             temp_vert_df = cellmap.vert_df.copy()
             temp_edge_df = cellmap.edge_df.copy()
 
-            # --- 1) Find connected edges
+            # Finding connected edges to the chosen vertex
             connected_edges = temp_edge_df[
                 (temp_edge_df['srce'] == chosen_vertex) |
                 (temp_edge_df['trgt'] == chosen_vertex)
             ].copy()
 
-            if connected_edges.empty:
-                raise ValueError(f"Vertex {chosen_vertex} has no connected edges.")
-
-            # --- 2) Create new vertex nearby
+            # Creating new vertex inside a specified radius from chosen vertex
             new_vert_data = temp_vert_df.loc[chosen_vertex].copy()
             angle = np.random.uniform(0, 2*np.pi)
             dx = distance * np.cos(angle)
@@ -94,39 +138,29 @@ def split_vertex(cellmap, chosen_vertex, next_edge_uid, geom, energyContribution
             new_vert_index = int(temp_vert_df.index.max()) + 1
             temp_vert_df.loc[new_vert_index] = new_vert_data
     
-            source_edge = connected_edges.iloc[0]
         
-            # --- 3) Create a pair of edges
-            if temp_edge_df.empty:
-                template = pd.Series({c: np.nan for c in cellmap.edge_df.columns})
-            else:
-                template = source_edge.copy().reindex(temp_edge_df.columns, fill_value=np.nan)
+            # Creating a new pair of edges
+            # Template: first connected edge (copies its all mechanical properties)
 
-            new_edge_index = int(temp_edge_df.index.max()) + 1 if not temp_edge_df.empty else 0
+            source_edge = connected_edges.iloc[0]
+
+            template = source_edge.copy()
+
+            new_edge_index = int(temp_edge_df.index.max()) + 1
             opposite_edge_index = new_edge_index + 1
 
             new_edge = template.copy()
             new_edge["srce"], new_edge["trgt"] = chosen_vertex, new_vert_index
-            new_edge["face"] = np.nan  # clear before insertion
+            new_edge["face"] = np.nan
 
             opposite_edge = template.copy()
             opposite_edge["srce"], opposite_edge["trgt"] = new_vert_index, chosen_vertex
-            opposite_edge["face"] = np.nan  # clear before insertion
+            opposite_edge["face"] = np.nan
 
             temp_edge_df.loc[new_edge_index] = new_edge
             temp_edge_df.loc[opposite_edge_index] = opposite_edge
 
-            # Assign fresh unique IDs to the new half-edges
-            temp_edge_df.loc[new_edge_index, "edge_uid"] = next_edge_uid
-            temp_edge_df.loc[opposite_edge_index, "edge_uid"] = next_edge_uid + 1
-            next_edge_uid += 2
-
-            # New edges did not "lose ECM" just by being created
-            temp_edge_df.loc[[new_edge_index, opposite_edge_index], "lost_ECM"] = 0
-            temp_edge_df.loc[[new_edge_index, opposite_edge_index], "ecm_break_step"] = np.nan
-
-
-            # --- 4) Reassign original edges to closer vertex
+            # Reassigning original edges to closer vertex
             chosen_xy = temp_vert_df.loc[chosen_vertex, cellmap.coords].values.astype(float)
             new_xy    = temp_vert_df.loc[new_vert_index, cellmap.coords].values.astype(float)
 
@@ -135,11 +169,6 @@ def split_vertex(cellmap, chosen_vertex, next_edge_uid, geom, energyContribution
                 if e_idx in (new_edge_index, opposite_edge_index):
                     continue
                 other = e['trgt'] if e['srce'] == chosen_vertex else e['srce']
-
-                # ✅ ignore broken edge rows instead of crashing
-                if pd.isna(other) or (other not in temp_vert_df.index):
-                    continue
-
                 other_xy = temp_vert_df.loc[other, cellmap.coords].values.astype(float)
 
                 d_chosen = np.linalg.norm(other_xy - chosen_xy)
@@ -152,7 +181,7 @@ def split_vertex(cellmap, chosen_vertex, next_edge_uid, geom, energyContribution
                     else:
                         temp_edge_df.loc[e_idx, 'trgt'] = new_vert_index
 
-            # --- 5) Identify "open" faces (whose edge chains don't close)
+            # Identifying "open" faces (whose edge chains don't close)
             open_faces = []
             for face_id, group in temp_edge_df.groupby('face'):
                 verts = list(group[['srce', 'trgt']].itertuples(index=False, name=None))
@@ -184,25 +213,25 @@ def split_vertex(cellmap, chosen_vertex, next_edge_uid, geom, energyContribution
                 if chain[0] != chain[-1]:
                     open_faces.append(face_id)
 
-            # filter: only faces touching the new vertex
+            # filtering to only faces touching the new vertex
             open_faces_touching_new = []
             for f in open_faces:
                 verts_f = temp_edge_df[temp_edge_df['face'] == f][['srce', 'trgt']].values.ravel()
                 if new_vert_index in verts_f or chosen_vertex in verts_f:
                     open_faces_touching_new.append(f)
 
-            print("🔎 Open faces touching new vertex:", open_faces_touching_new)
+            print("Open faces touching new vertex:", open_faces_touching_new)
 
             if len(open_faces_touching_new) != 2:
                 raise ValueError(
                     f"Expected 2 open faces, found {len(open_faces_touching_new)}: {open_faces_touching_new}"
                 )
 
-            # --- Find which new edge closes which open face ---
+            # Finding which new edge closes which open face (needs correct directionality)
             for f in open_faces_touching_new:
                 f_edges = temp_edge_df[temp_edge_df['face'] == f]
 
-                # collect src/trgt vertices
+                # collecting src/trgt vertices
                 srces = list(f_edges['srce'].astype(int))
                 trgts = list(f_edges['trgt'].astype(int))
 
@@ -225,15 +254,13 @@ def split_vertex(cellmap, chosen_vertex, next_edge_uid, geom, energyContribution
                     elif opposite_pair == needed_edge:
                         temp_edge_df.loc[opposite_edge_index, 'face'] = f
                     else:
-                        print(f"⚠️ Face {f}: expected {needed_edge}, "
+                        print(f"Face {f}: expected {needed_edge}, "
                               f"but new={new_pair}, opp={opposite_pair}")
                         
-            # --- 6) Verify both assigned faces are closed directed cycles; if not, swap once and recheck
+            # Verifying both faces are closed in directed edge cycles; if not, swap once and recheck
 
             def _face_closes(df, face_id):
                 sub = df[df['face'] == face_id][['srce', 'trgt']]
-                if sub.empty:
-                    return False
                 # in==out at every vertex
                 outc = sub['srce'].value_counts()
                 inc  = sub['trgt'].value_counts()
@@ -273,36 +300,36 @@ def split_vertex(cellmap, chosen_vertex, next_edge_uid, geom, energyContribution
                     f"new→face {face_new} ok={ok_new}, opp→face {face_opp} ok={ok_opp}"
             )
 
-            # ✅ --- 7) Commit temp results ---
+            # Committing temp results
             cellmap.vert_df = temp_vert_df
             cellmap.edge_df = temp_edge_df
 
-            # Now safe to update geometry
+            # Updating geometry
             geom.update_all(cellmap)
             cellmap.reset_topo()
             cellmap.reset_index()
 
-            print(f"✅ Successfully divided vertex {chosen_vertex} → new vertex {new_vert_index}")
-            return cellmap, chosen_vertex, new_vert_index, new_edge_index, opposite_edge_index, next_edge_uid
+            # Relaxing the model
+            energyContributions_model.compute_energy(cellmap)
+            [cellmap, geom, model_H, history_H, solver] = vertexModel2.solveEuler(
+                cellmap, geom, energyContributions_model, endTime=40
+            )
+
+            print(f" Successfully divided vertex {chosen_vertex} → new vertex {new_vert_index}")
+            return cellmap, chosen_vertex, new_vert_index, new_edge_index, opposite_edge_index
 
         except Exception as e:
-            print(f"⚠️ split_vertex attempt {attempt+1}/{retry_attempts} failed: {e}")
-
+            print(f" split_vertex attempt {attempt+1}/{retry_attempts} failed: {e}")
+            # rollback original state
             cellmap.vert_df = original_vert_df.copy()
             cellmap.edge_df = original_edge_df.copy()
-
-            # ✅ rollback must never crash
-            try:
-                geom.update_all(cellmap)
-                cellmap.reset_topo()
-                cellmap.reset_index()
-            except Exception as e2:
-                print(f"⚠️ rollback also failed (ignored): {e2}")
-
+            geom.update_all(cellmap)
+            cellmap.reset_topo()
+            cellmap.reset_index()
             attempt += 1
 
-    print("❌ Failed to divide after multiple attempts.")
-    return cellmap, chosen_vertex, None, None, None, next_edge_uid
+    print("Failed to divide after multiple attempts.")
+    return cellmap, chosen_vertex, None, None, None
 
 def identify_vertices_to_divide(cellmap, inside_vertices, edge_sum_threshold):
     """

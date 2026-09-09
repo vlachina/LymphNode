@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 
-# Adding some gigling
+# Adding some movement
 class BrownianMotion(effectors.AbstractEffector):
     
     label = 'Brownian Motion'
