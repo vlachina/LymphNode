@@ -115,7 +115,7 @@ def identify_boundary_layers(cellmap, max_layers):
 
 def view(cellmap, geom, show_axes=True, xlabel="x", ylabel="y", xlim=None, ylim=None):
     """
-    Visualizes the cell map with optional axes and labels.
+    Visualises the cell map with optional axes and labels.
 
     Parameters:
         show_axes (bool): If True, shows axis ticks and labels.
@@ -154,35 +154,33 @@ def view(cellmap, geom, show_axes=True, xlabel="x", ylabel="y", xlim=None, ylim=
 
 
 def highlight_vertices(cellmap, geom, chosen_vert_ids, default_color='red', highlight_color='lime', default_size=10, highlight_size=40, show_axes=True):
+    
     """
-    Visualises the cell map with solid blue edges and highlights selected vertices.
+    Plots the tissue with all edges shown, highlighting specific vertices
+    (e.g. a vertex just created by division or a collapsed edge's merge point)
+    in a different colour and size from the rest.
 
-    Parameters:
-    - cellmap: Tyssue sheet (cellmap).
-    - geom: Geometry object to update cellmap.
-    - chosen_vert_ids: List of vertex IDs to highlight.
-    - default_color: Default vertex colour (others).
-    - highlight_color: Colour for highlighted vertices.
-    - default_size: Size for all non-highlighted vertices.
-    - highlight_size: Size for highlighted vertices.
+    - chosen_vert_ids: Vertex ID(s) to highlight.
+    - default_color, default_size: Appearance of all non-highlighted vertices.
+    - highlight_color, highlight_size: Appearance of the highlighted vertices.
+    - show_axes: If True, shows x/y axis labels; if False, hides tick marks entirely.
     """
-    # Update geometry before plotting
+
+    # Updating geometry before plotting
     geom.update_all(cellmap)
 
-    # Set default vertex appearance
+    # Setting default vertex appearance
     cellmap.vert_df['color'] = default_color
     cellmap.vert_df['size'] = default_size
 
-    # Highlight specified vertices
+    # Highlighting specified vertices
     for v_id in chosen_vert_ids:
         if v_id in cellmap.vert_df.index:
             cellmap.vert_df.loc[v_id, 'color'] = highlight_color
             cellmap.vert_df.loc[v_id, 'size'] = highlight_size
 
-    # Force full opacity for all vertices
-    cellmap.vert_df['alpha'] = 1.0
 
-    # Plot with consistent visual style
+    # Plotting with consistent visual style
     fig, ax = sheet_view(
         cellmap,
         mode="2D",
@@ -195,7 +193,6 @@ def highlight_vertices(cellmap, geom, chosen_vert_ids, default_color='red', high
             "alpha": 1.0
         }
     )
-
 
     fig.set_size_inches(15, 15)
     if show_axes:
@@ -210,9 +207,14 @@ def highlight_vertices(cellmap, geom, chosen_vert_ids, default_color='red', high
 
 
 def load_simulation_state(folder_path, filename='final_cellmap_state.pkl'):
+
+    """
+    Loads a saved pkl file 
+    """
+
     file_path = os.path.join(folder_path, filename)
 
-    # Load the cellmap object using pickle
+    # Loading the cellmap object using pickle
     with open(file_path, 'rb') as f:
         cellmap = pickle.load(f)
 
@@ -221,33 +223,24 @@ def load_simulation_state(folder_path, filename='final_cellmap_state.pkl'):
 
 
 def save_simulation_state(cellmap, folder_path, filename='final_cellmap_state.pkl'):
-    # Ensure the folder exists
+
+    """
+    Saves current model state as a pkl file 
+    """
+
+    # Ensuring the folder exists
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-    # Construct the full file path
+    # Constructing the full file path
     file_path = os.path.join(folder_path, filename)
 
-    # Save the cellmap object using pickle
+    # Saving the cellmap object using pickle
     with open(file_path, 'wb') as f:
         pickle.dump(cellmap, f)
 
     print(f"Simulation state saved at {file_path}")
 
-
-
-
-# Register the custom colormap
-custom_cmap = ListedColormap(["yellow", "red"])
-# Register custom colormap only if it doesn't already exist
-if 'yellow_red' not in plt.colormaps():
-    custom_cmap = ListedColormap(["yellow", "red"])
-    try:
-        # Matplotlib 3.5+ preferred API
-        plt.colormaps.register(custom_cmap, name='yellow_red')
-    except AttributeError:
-        # Fallback for older matplotlib versions
-        cm.register_cmap(name='yellow_red', cmap=custom_cmap)
 
 def highlight_edge_on_cellmap(cellmap_init, edge_id=None, figsize=(15, 15),
                               vert_col='orange', edge_highlight_col='red',
@@ -290,8 +283,6 @@ def highlight_edge_on_cellmap(cellmap_init, edge_id=None, figsize=(15, 15),
 
     # Create figure
     fig, ax = plt.subplots(figsize=figsize)
-    edge_colors = np.where(cellmap.edge_df["color_edges"] == 1, edge_highlight_col, "yellow")
-
 
     # Draw base (thicker black) edges
     draw_edge(
