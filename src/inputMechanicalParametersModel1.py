@@ -66,7 +66,6 @@ def update(cellmap):
     else:
         cellmap.edge_df["length_elasticity"] = 90
 
-    #cellmap = auxFunctions.set_opposite_edges_mechanics(cellmap)
 
     rangePreferedLength = False
 
