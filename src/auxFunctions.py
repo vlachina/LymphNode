@@ -1,23 +1,9 @@
 import tyssue
 import os
 import pickle
-from tyssue import History
 from tyssue.draw import sheet_view
-from tyssue.draw.plt_draw import quick_edge_draw
-from tyssue.io import obj
 import matplotlib.pyplot as plt
-import pathlib
-import random
-import numpy as np
-from scipy.stats import skewnorm#
-from matplotlib import cm
-from matplotlib.cm import ScalarMappable
-import logging
-import pandas as pd
-from scipy.stats import truncnorm
 from tyssue.draw.plt_draw import draw_edge, draw_vert
-from matplotlib.colors import ListedColormap
-
 
 def identify_boundary_layers(cellmap, max_layers):
 
