@@ -242,7 +242,7 @@ def save_simulation_state(cellmap, folder_path, filename='final_cellmap_state.pk
     print(f"Simulation state saved at {file_path}")
 
 
-def highlight_edge_on_cellmap(cellmap_init, edge_id=None, figsize=(15, 15),
+def highlight_edge_on_cellmap(cellmap, edge_id=None, figsize=(15, 15),
                               vert_col='orange', edge_highlight_col='red',
                               base_edge_col='black', base_vert_col='black', vert_size=50,
                               save_path=None, show_axes=False,
@@ -252,11 +252,11 @@ def highlight_edge_on_cellmap(cellmap_init, edge_id=None, figsize=(15, 15),
     Plots a Tyssue cellmap with optional edge highlighting.
 
     Parameters:
-    - cellmap_init: The original cellmap to copy and draw.
+    - cellmap: Cellmap to copy and draw.
     - edge_id: (Optional) The edge index to highlight.
     - figsize: Tuple defining the figure size.
     - vert_col: Colour of the top-layer vertices.
-    - edge_highlight_col: Colour for the highlighted edge (used in custom colormap).
+    - edge_highlight_col: Colour for the highlighted edge.
     - base_edge_col: Colour of the underlying edges (for outlines).
     - base_vert_col: Colour of the underlying vertices (for outlines).
     - save_path: Optional path to save the figure.
@@ -264,10 +264,8 @@ def highlight_edge_on_cellmap(cellmap_init, edge_id=None, figsize=(15, 15),
     - show_figure: If True, call plt.show(); if False, don't display the figure.
     """
 
-   
-
-    # Copy the cellmap
-    cellmap = cellmap_init.copy()
+    # Copying the cellmap
+    cellmap = cellmap.copy()
     coords = cellmap.coords[:2]  # 2D coordinates
 
     # Set edge colour map indices and widths
