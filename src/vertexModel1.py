@@ -46,7 +46,7 @@ def initialize(numCellRows=40, max_retries=5):
             cellMap.reset_index()
             cellMap.reset_topo()
             break
-        except IndexError:
+        except (IndexError, ValueError):
             print(f"Tissue generation attempt {attempt + 1}/{max_retries} hit a degenerate cut, retrying with a new random layout...")
             if attempt == max_retries - 1:
                 raise
