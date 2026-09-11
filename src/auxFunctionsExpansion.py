@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import logging
+logger = logging.getLogger(name=__name__)
 
 def collapse_single_edge_expansion(cellmap, geom, energyContributions_model, edge_id):
     """
