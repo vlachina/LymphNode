@@ -12,41 +12,54 @@ with apoptosis and division and tissue expansion with mechanical perturbations.
 
 ## Setup
 
-Environment specification is provided in `environment.yml` / `pyproject.toml`
-/ `requirements.txt`. [Add the actual command you use, e.g.:]
+**Note: this environment is Linux-only.** It has not been tested on macOS or Windows.
+
+A pre-built, tested Linux environment is available for download:
+https://doi.org/10.5281/zenodo.22705658 (`tyssue_env.tar.gz`, ~741.7 MB)
 
 ```bash
-conda env create -f environment.yml
-conda activate tyssue
+mkdir tyssue_env
+tar -xzf tyssue_env.tar.gz -C tyssue_env
+source tyssue_env/bin/activate
+conda-unpack
+```
+
+This restores the exact environment used to produce these results. A conda
+`environment.yml` is also provided for reference, but the packed environment
+above is the recommended, tested path.
+
+Once activated, launch Jupyter to open the notebooks:
+
+```bash
+jupyter lab
 ```
 
 ## Repository structure
 
+```
 notebooks/
 ├── Figure_4/
-│ ├── Collagenase_simulations.ipynb — laser ablation before/after collagenase treatment, Models 1 & 2
-│ └── Parameter_sweep.ipynb — parameter sweep over mechanical properties, Models 1 & 2
+│   ├── Collagenase_simulations.ipynb   — laser ablation before/after collagenase treatment, Models 1 & 2
+│   └── Parameter_sweep.ipynb           — parameter sweep over mechanical properties, Models 1 & 2
 ├── Figure_5/
-│ ├── Cell_cycle_code.ipynb — vertex division and edge collapse mechanics
-│ ├── Expansion_simulations.ipynb — tissue expansion under growth
-│ └── Homeostasis_simulations.ipynb — steady-state edge collapse / division cycling
+│   ├── Cell_cycle_code.ipynb           — vertex division and edge collapse mechanics
+│   ├── Expansion_simulations.ipynb     — tissue expansion under growth
+│   └── Homeostasis_simulations.ipynb   — steady-state edge collapse / division cycling
 └── Figure_6/
-└── Expansion_with_mechanical_changes.ipynb — tissue expansion with local contractility patches
+    └── Expansion_with_mechanical_changes.ipynb — tissue expansion with local contractility patches
 
 src/
-├── vertexModel1.py, vertexModel2.py — tissue initialisation and Euler solver, per model
-├── inputMechanicalParametersModel1.py, ...Model2.py — default mechanical parameters, per model
-├── auxFunctions.py — shared plotting, boundary-identification, and save/load utilities
-├── auxFunctionsExpansion.py — division-threshold logic used in Figure_6
-└── auxFunctionsHomeostasis.py — edge collapse / vertex division used in Homeostasis_simulations.ipynb
-
+├── vertexModel1.py, vertexModel2.py                  — tissue initialisation and Euler solver, per model
+├── inputMechanicalParametersModel1.py, ...Model2.py  — default mechanical parameters, per model
+├── auxFunctions.py                                    — shared plotting, boundary-identification, and save/load utilities
+├── auxFunctionsExpansion.py                           — division-threshold logic used in Figure_6
+└── auxFunctionsHomeostasis.py                         — edge collapse, vertex division, and vertex-selection logic used in Homeostasis_simulations.ipynb
+```
 
 ## Notes for review
 
 Each notebook is self-contained and can be run top to bottom; cell outputs are cleared, so re-running will regenerate all figures/data from scratch.
 
-Some simulations, the parameter sweep in particular, are computationally intensive and can take weeks to complete in full. They don't need to be run to completion to see how the code works: running for a shorter time is enough to see the workflow in action and inspect example output.
+Some simulations, the parameter sweep in particular, are computationally intensive and can take weeks to complete in full. They do not need to be run to completion to see how the code works: running for a shorter time is enough to see the workflow in action and inspect example output. To see example output quickly, reduce `num_tissues` and the size of the parameter ranges (`area_elasticities`, `length_elasticities`, etc.) before running.
 
 These notebooks show only how the raw simulation data was collected; downstream analysis of that data is not included here.
-
-
