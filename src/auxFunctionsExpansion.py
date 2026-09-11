@@ -3,13 +3,16 @@ import numpy as np
 import logging
 logger = logging.getLogger(name=__name__)
 
+import src.vertexModel2 as vertexModel2
+import src.auxFunctionsHomeostasis as auxFunctionsHomeostasis
+
 def collapse_single_edge_expansion(cellmap, geom, energyContributions_model, edge_id):
     """
     Collapses a single specified edge by merging its two vertices into one.
     The new vertex is placed at the midpoint of the original edge.
     
     Parameters:
-    -----------
+    -----------"""  """
     cellmap : object
         The cellmap containing vertex and edge DataFrames
     geom : object
@@ -368,7 +371,7 @@ def perform_divisions(cellmap, vertices_to_divide, next_edge_uid, geom, energyCo
 
     for v_id in vertices_to_divide:
         try:
-            cellmap, chosen_vertex, new_vert_index, new_edge_index, opposite_edge_index, next_edge_uid = split_vertex(
+            cellmap, chosen_vertex, new_vert_index, new_edge_index, opposite_edge_index, next_edge_uid = auxFunctionsHomeostasis.split_vertex(
                 cellmap, v_id, next_edge_uid, geom, energyContributions_model, distance=division_distance
             )
 
