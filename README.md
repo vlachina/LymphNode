@@ -55,3 +55,12 @@ src/
 ├── auxFunctionsExpansion.py                           — division-threshold logic used in Figure_6
 └── auxFunctionsHomeostasis.py                         — edge collapse, vertex division, and vertex-selection logic used in Homeostasis_simulations.ipynb
 ```
+
+
+## Notes for review
+
+Each notebook is self-contained and can be run top to bottom; cell outputs are cleared, so re-running will regenerate all figures/data from scratch.
+
+Some simulations, the parameter sweep in particular, are computationally intensive and can take weeks to complete in full. They do not need to be run to completion to see how the code works: running for a shorter time is enough to see the workflow in action and inspect example output. To see example output quickly, reduce `num_tissues` and the size of the parameter ranges (`area_elasticities`, `length_elasticities`, etc.) before running.
+
+These notebooks show only how the raw simulation data was collected; downstream analysis of that data is not included here.
