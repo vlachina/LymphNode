@@ -39,8 +39,9 @@ jupyter lab
 ```
 notebooks/
 ├── Figure_4/
-│   ├── Collagenase_simulations.ipynb   — laser ablation before/after collagenase treatment, Models 1 & 2
-│   └── Parameter_sweep.ipynb           — parameter sweep over mechanical properties, Models 1 & 2
+│   │── Parameter_sweep.ipynb           — parameter sweep over mechanical properties, Models 1 & 2
+│   └── Collagenase_simulations.ipynb   — laser ablation before/after collagenase treatment, Models 1 & 2
+│   
 ├── Figure_5/
 │   ├── Cell_cycle_code.ipynb           — vertex division and edge collapse mechanics
 │   ├── Expansion_simulations.ipynb     — tissue expansion under growth
