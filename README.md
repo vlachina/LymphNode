@@ -48,7 +48,7 @@ notebooks/
 │   └── Expansion_simulations.ipynb     — tissue expansion under growth
 │
 └── Figure_6/
-    └── Expansion_with_mechanical_changes.ipynb — tissue expansion with local contractility patches
+    └── Expansion_with_mechanical_changes.ipynb — tissue expansion with local mechanical perturbations
 
 src/
 ├── vertexModel1.py, vertexModel2.py                  — tissue initialisation and Euler solver, per model
