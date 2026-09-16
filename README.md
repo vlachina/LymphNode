@@ -23,3 +23,35 @@ tar -xzf tyssue_env.tar.gz -C tyssue_env
 source tyssue_env/bin/activate
 conda-unpack
 ```
+
+This restores the exact environment used to produce these results. A conda
+`environment.yml` is also provided for reference, but the packed environment
+above is the recommended, tested path.
+
+Once activated, launch Jupyter to open the notebooks:
+
+```bash
+jupyter lab
+```
+
+## Repository structure
+
+```
+notebooks/
+├── Figure_4/
+│   ├── Collagenase_simulations.ipynb   — laser ablation before/after collagenase treatment, Models 1 & 2
+│   └── Parameter_sweep.ipynb           — parameter sweep over mechanical properties, Models 1 & 2
+├── Figure_5/
+│   ├── Cell_cycle_code.ipynb           — vertex division and edge collapse mechanics
+│   ├── Expansion_simulations.ipynb     — tissue expansion under growth
+│   └── Homeostasis_simulations.ipynb   — steady-state edge collapse / division cycling
+└── Figure_6/
+    └── Expansion_with_mechanical_changes.ipynb — tissue expansion with local contractility patches
+
+src/
+├── vertexModel1.py, vertexModel2.py                  — tissue initialisation and Euler solver, per model
+├── inputMechanicalParametersModel1.py, ...Model2.py  — default mechanical parameters, per model
+├── auxFunctions.py                                    — shared plotting, boundary-identification, and save/load utilities
+├── auxFunctionsExpansion.py                           — division-threshold logic used in Figure_6
+└── auxFunctionsHomeostasis.py                         — edge collapse, vertex division, and vertex-selection logic used in Homeostasis_simulations.ipynb
+```
