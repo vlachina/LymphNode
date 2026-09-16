@@ -46,6 +46,7 @@ notebooks/
 │   ├── Cell_cycle_code.ipynb           — vertex division and edge collapse mechanics
 │   ├── Homeostasis_simulations.ipynb   — steady-state edge collapse / division cycling
 │   └── Expansion_simulations.ipynb     — tissue expansion under growth
+│
 └── Figure_6/
     └── Expansion_with_mechanical_changes.ipynb — tissue expansion with local contractility patches
 
